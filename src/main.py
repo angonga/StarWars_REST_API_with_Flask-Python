@@ -205,22 +205,25 @@ def get_planets():
     return jsonify(allplanets), 200
 
 @app.route("/favorites", methods=["GET","POST", "DELETE"])
-def add_delete_favorites():
+def get_post_delete_favorites():
+    if (request.method == "GET"):
+        allfavorites = Favorites.query.all()
+        allfavorites = list(map(lambda x: x.serialize(),allfavorites))
+        return jsonify(allfavorites), 200
+    
+    if(request.method == "POST"):
+        post_fav = Favorites.query.get()
+        post_fav = list(map(lambda x: x.serialize(),post_fav))
+        post_fav.user_id = "user_id"
+        db.session.commit()
+        return jsonify({"mensaje": "Favorite successfully included"}), 200
 
-    allfavorites = Favorites.query.all()
-    allfavorites = list(map(lambda x: x.serialize(),allfavorites))
-
-    return jsonify(allfavorites), 200
-
-
-# FAVORITOS (POST, DELETE) = TODOLIST PROJECT
-# CHARACTER (GET)
-# PLANETS (GET)
-# PUEDO CREAR UN ENDPOINT PARA CARGAR INFO A MI BD, PODRIA SER CON CRUD
-# Y QUE LO MANEJE POR APARTE (CRUD PARA PEOPLE. CRUD PARA CHARACTERS)
-# HACER PRIMERO ESTO: CARGAR LOS DATOS A TRAVÉS DE POSTMAN. Y LE HAGO EL POST A MI TABLA ESPECIFICA
-# DE ACUERDO AL TIEMPO CREAMOS OTRO COMPONENTE PARA EL CRUD
-# this only runs if `$ python src/main.py` is executed
+    if(request.method == "DELETE"):
+        del_fav = Favorites.query.get()
+        del_fav = list(map(lambda x: x.serialize(),del_fav))
+        favorites.delete()
+        db.session.commit()
+        return jsonify({"mensaje": "Favorite successfully deleted"}), 200 
 
 if __name__ == "__main__":
     PORT = int(os.environ.get("PORT", 3000))
