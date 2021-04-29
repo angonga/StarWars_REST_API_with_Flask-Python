@@ -204,26 +204,32 @@ def get_planets():
 
     return jsonify(allplanets), 200
 
-@app.route("/favorites", methods=["GET","POST", "DELETE"])
-def get_post_delete_favorites():
-    if (request.method == "GET"):
+@app.route("/favorites", methods=["GET"])
+def get_favorites():
         allfavorites = Favorites.query.all()
         allfavorites = list(map(lambda x: x.serialize(),allfavorites))
         return jsonify(allfavorites), 200
-    
-    if(request.method == "POST"):
-        post_fav = Favorites.query.get()
-        post_fav = list(map(lambda x: x.serialize(),post_fav))
-        post_fav.user_id = "user_id"
-        db.session.commit()
-        return jsonify({"mensaje": "Favorite successfully included"}), 200
 
-    if(request.method == "DELETE"):
-        del_fav = Favorites.query.get()
-        del_fav = list(map(lambda x: x.serialize(),del_fav))
-        favorites.delete()
-        db.session.commit()
-        return jsonify({"mensaje": "Favorite successfully deleted"}), 200 
+@app.route("/favorites", methods=["POST"])
+def post_favorites():
+    nfavorite = Favorites()
+    nfavorite.planets_id = request.json['planets_id']
+    nfavorite.characters_id = request.json['characters_id']
+    nfavorite.user_id  = request.json['user_id']
+    db.session.add(nfavorite)
+    db.session.commit()
+    return jsonify({"msg": "Favorite successfully created"}), 200
+
+@app.route("/favorites/<int:id>", methods=["DELETE"])
+def delete_favorites(id):
+    if not id:
+        return jsonify({'msg': 'ID is required'})
+    dfavorite = Favorites.query.filter_by(id=id).first()
+    if not dfavorite:
+        return jsonify({'msg': 'Not favorite found'})
+    db.session.delete(dfavorite)
+    db.session.commit()
+    return jsonify({"msg": "Favorite successfully deleted"}), 200  
 
 if __name__ == "__main__":
     PORT = int(os.environ.get("PORT", 3000))
